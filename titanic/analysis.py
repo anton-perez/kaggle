@@ -107,26 +107,20 @@ def convert_regressor_output_to_survival_value(n):
     return 0
   return 1
 
-
 y_test_predictions = [convert_regressor_output_to_survival_value(n) for n in y_test_predictions]
 y_train_predictions = [convert_regressor_output_to_survival_value(n) for n in y_train_predictions]
 
-
 def get_accuracy(predictions, actual):
   correct_predictions = 0
-  incorrect_predictions = 0
   for n in range(len(predictions)):
     if predictions[n] == actual[n]:
       correct_predictions += 1
-    else:
-      incorrect_predictions += 1
-  return correct_predictions / (correct_predictions + incorrect_predictions)
-
+  return correct_predictions / len(predictions)
 
 print('\n')
 print("\n", "features:", features_to_use, "\n")
-print("training accuracy:", get_accuracy(y_train_predictions, y_train))
-print("testing accuracy:", get_accuracy(y_test_predictions, y_test), "\n")
+print("training accuracy:", round(get_accuracy(y_train_predictions, y_train), 4))
+print("testing accuracy:", round(get_accuracy(y_test_predictions, y_test), 4), "\n")
 
 coefficients['constant'] = regressor.intercept_
 print({k: round(v, 4) for k, v in coefficients.items()})
