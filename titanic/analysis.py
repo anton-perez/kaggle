@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
-import sys
+from sklearn.linear_model import LogisticRegression
 
 df = pd.read_csv('/home/runner/kaggle/titanic/dataset_of_knowns.csv')
 
@@ -87,6 +87,8 @@ y_test = testing_array[:,0]
 X_train = training_array[:,1:]
 X_test = testing_array[:,1:]
 
+#Linear Regressor
+print('\nLinear Regression:')
 regressor = LinearRegression()
 regressor.fit(X_train, y_train)
 
@@ -117,10 +119,44 @@ def get_accuracy(predictions, actual):
       correct_predictions += 1
   return correct_predictions / len(predictions)
 
-print('\n')
+
 print("\n", "features:", features_to_use, "\n")
 print("training accuracy:", round(get_accuracy(y_train_predictions, y_train), 4))
 print("testing accuracy:", round(get_accuracy(y_test_predictions, y_test), 4), "\n")
 
 coefficients['constant'] = regressor.intercept_
+print({k: round(v, 4) for k, v in coefficients.items()})
+
+#Logistic Regressor
+print('\nLogistic Regression:')
+regressor = LogisticRegression(max_iter=1000)
+regressor.fit(X_train, y_train)
+
+coefficients = {}
+feature_columns = list(training_df.columns[1:])
+feature_coefficients = list(regressor.coef_)[0]
+
+
+for n in range(len(feature_columns)):
+  column = feature_columns[n]
+  coefficient = feature_coefficients[n]
+  coefficients[column] = coefficient
+
+y_test_predictions = regressor.predict(X_test)
+y_train_predictions = regressor.predict(X_train)
+
+def convert_regressor_output_to_survival_value(n):
+  if n < 0.5:
+    return 0
+  return 1
+
+y_test_predictions = [convert_regressor_output_to_survival_value(n) for n in y_test_predictions]
+y_train_predictions = [convert_regressor_output_to_survival_value(n) for n in y_train_predictions]
+
+
+print("\n", "features:", features_to_use, "\n")
+print("training accuracy:", round(get_accuracy(y_train_predictions, y_train), 4))
+print("testing accuracy:", round(get_accuracy(y_test_predictions, y_test), 4), "\n")
+
+coefficients['constant'] = list(regressor.intercept_)[0]
 print({k: round(v, 4) for k, v in coefficients.items()})
