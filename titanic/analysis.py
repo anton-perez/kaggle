@@ -145,10 +145,6 @@ for n in range(len(feature_columns)):
 y_test_predictions = regressor.predict(X_test)
 y_train_predictions = regressor.predict(X_train)
 
-def convert_regressor_output_to_survival_value(n):
-  if n < 0.5:
-    return 0
-  return 1
 
 y_test_predictions = [convert_regressor_output_to_survival_value(n) for n in y_test_predictions]
 y_train_predictions = [convert_regressor_output_to_survival_value(n) for n in y_train_predictions]
@@ -160,3 +156,55 @@ print("testing accuracy:", round(get_accuracy(y_test_predictions, y_test), 4), "
 
 coefficients['constant'] = list(regressor.intercept_)[0]
 print({k: round(v, 4) for k, v in coefficients.items()})
+
+#interaction terms
+print('\nLogistic Regression with Interaction Terms:')
+columns = list(training_df.columns[1:])
+
+for var1 in list(training_df.columns[1:]):
+  for var2 in list(training_df.columns[columns.index(var1)+1:]):
+    if var1!= var2:
+      if not('Embarked=' in var1 and 'Embarked=' in var2):
+        if not('CabinType=' in var1 and 'CabinType=' in var2):
+          if not('SibSp' in var1 and 'SibSp' in var2):
+            columns.append(var1 + " * " + var2)
+
+for var in columns:
+  if ' * ' in var:
+    vars = var.split(' * ')
+    df[var] = df[vars[0]]*df[vars[1]]
+
+training_df = df[:500]
+testing_df = df[500:]
+
+training_array = np.array(training_df)
+testing_array = np.array(testing_df)
+
+y_train = training_array[:,0]
+y_test = testing_array[:,0]
+
+X_train = training_array[:,1:]
+X_test = testing_array[:,1:]
+
+regressor = LogisticRegression(max_iter=10000)
+regressor.fit(X_train, y_train)
+
+coefficients = {}
+feature_columns = list(training_df.columns[1:])
+feature_coefficients = list(regressor.coef_)[0]
+
+for n in range(len(feature_columns)):
+  column = feature_columns[n]
+  coefficient = feature_coefficients[n]
+  coefficients[column] = coefficient
+
+y_test_predictions = regressor.predict(X_test)
+y_train_predictions = regressor.predict(X_train)
+
+
+y_test_predictions = [convert_regressor_output_to_survival_value(n) for n in y_test_predictions]
+y_train_predictions = [convert_regressor_output_to_survival_value(n) for n in y_train_predictions]
+
+
+print("training accuracy:", round(get_accuracy(y_train_predictions, y_train), 3))
+print("testing accuracy:", round(get_accuracy(y_test_predictions, y_test), 3), "\n")
