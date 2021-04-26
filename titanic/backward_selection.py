@@ -121,7 +121,7 @@ def get_df_accuracy(df, columns):
   X_train = training_array[:,1:]
   X_test = testing_array[:,1:]
 
-  regressor = LogisticRegression(max_iter=100)
+  regressor = LogisticRegression(max_iter=100, random_state=0)
   regressor.fit(X_train, y_train)
 
   y_test_predictions = regressor.predict(X_test)
